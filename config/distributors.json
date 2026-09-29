@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "The office. Deliberately the ONLY thing in this file, and in its own file, so",
+    "that changing who distributes prizes is a visible standalone act in the git",
+    "history rather than a line buried in an unrelated diff.",
+    "",
+    "Read at runtime like the rest of Config, so a change here takes effect on edit.",
+    "",
+    "KNOWN LIMIT, accepted rather than solved: this repository is personally owned,",
+    "so branch protection exempts administrators by default and naming authorised",
+    "pushers is an organisation-only feature. Anyone with write access can edit this",
+    "file, including adding themselves. That is why it stands alone: an unauthorised",
+    "change is visible as a change to the office.",
+    "",
+    "First entry is the appointed Distributor. The second, if present, is the Deputy,",
+    "who exists for exactly one case: issuing when the appointed Distributor is the",
+    "Person the Award would name. No Distributor issues to themselves."
+  ],
+
+  "distributors": [
+    "DurgaPrasadReddyV"
+  ]
+}

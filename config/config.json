@@ -1,0 +1,34 @@
+{
+  "_comment": [
+    "Hand-edited configuration. The app reads this at runtime, so a change here",
+    "takes effect immediately - no rebuild, no redeploy. Edit deliberately.",
+    "",
+    "THREE THINGS BELOW LOOK LIKE BUGS AND ARE NOT. Please do not 'fix' them:",
+    "",
+    "1. prizes[].allocation is the ORIGINAL count, not a current balance.",
+    "   Remaining stock is counted from the Awards actually issued, so a balance",
+    "   stored here could drift from reality. Adding a Prize to top up stock means",
+    "   raising the allocation AND knowing it will only take effect for new Awards.",
+    "",
+    "2. A Prize may be given to many People. A Person may win exactly ONCE, ever.",
+    "   These are two different rules about two different things, and they are not",
+    "   in tension. A Prize is a kind of thing with a count; uniqueness is on the",
+    "   Person, enforced by the existence of their Award file.",
+    "",
+    "3. people[] is ADVISORY. A claim naming a login not listed here is refused,",
+    "   but the rule that actually binds is that the Award file for that Person",
+    "   already exists. The roster only controls which names the app offers."
+  ],
+
+  "events": [
+    { "id": "hackathon-2026", "name": "Hackathon", "year": 2026 }
+  ],
+
+  "prizes": [
+    { "id": "keyboard", "name": "Keyboard", "allocation": 5 }
+  ],
+
+  "people": [
+    { "login": "DurgaPrasadReddyV", "name": "Durga Prasad Reddy Vennapusa" }
+  ]
+}
