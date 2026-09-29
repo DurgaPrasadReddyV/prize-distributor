@@ -142,6 +142,11 @@ A consequence that gets stored is a consequence that can eventually contradict t
 fact it came from. Deriving instead means that contradiction is not merely
 unlikely, but unrepresentable.
 
+Because consequence is derived, the Ledger can only be read as a whole. Knowing
+whether one Entry was awarded means knowing every Award that has ever been issued
+— which is why the Ledger's shape is two separate sets rather than one file, and
+why the two are never allowed to collide with one another.
+
 ## Write Authority
 
 The proof a Person supplies that the repository will accept their commits. It is
@@ -164,8 +169,24 @@ faithfully record the wrong name.
 ## Config
 
 The configured facts the system operates on: which Events exist, which Prizes are
-in the catalogue, how much inventory each holds, and who holds the office of
-Distributor.
+in the catalogue, how many of each were originally allocated, and who holds the
+office of Distributor.
 
 Config is stated, not discovered. It is the only place a Person's authority comes
 from that is not derived from repository permissions.
+
+Config is *hand-written and read live*. It is edited by a person in a diff, and it
+takes effect the moment it is edited — never waiting on a build. That immediacy is
+what makes the office it names worth protecting, and also what makes it dangerous:
+the same property that lets a new Distributor take office without a redeploy is the
+one that lets a Contributor promote themselves.
+
+## Duplicate Entry
+
+Two Entries naming the same Person for the same Event. This is **not an error** and
+the two are kept separately.
+
+Independent Contributors arriving at the same conclusion is the ordinary case that
+verification exists to resolve, not a fault in either record. Collapsing them would
+destroy a real claim and report to a Contributor that something had already been
+recorded when it had not.
