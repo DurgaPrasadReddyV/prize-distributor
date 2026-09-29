@@ -77,6 +77,21 @@ The complete, permanent record of every Entry and every Award. It is the
 authority on who has won what, and it cannot be silently rewritten: the history of
 changes to it is itself part of the record.
 
+A Ledger that cannot be silently rewritten is also a Ledger whose *shape* carries
+meaning. Whether the one-Award rule holds is a property of how the Ledger is laid
+out, not of any check the application performs while writing: a rule expressed as
+a count or a scan can be raced, and a rule expressed as the presence of a record
+cannot.
+
+## Write Authority
+
+The proof a Person supplies that the repository will accept their commits. It is
+not held by the application on anyone's behalf — the Person brings it, it is used
+only against the repository, and it is never written anywhere the Ledger can reach.
+
+Write Authority is what separates a Contributor from a bystander. It is distinct
+from office: holding it says nothing about whether someone is the Distributor.
+
 ## Config
 
 The configured facts the system operates on: which Events exist, which Prizes are
