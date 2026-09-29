@@ -147,6 +147,11 @@ whether one Entry was awarded means knowing every Award that has ever been issue
 — which is why the Ledger's shape is two separate sets rather than one file, and
 why the two are never allowed to collide with one another.
 
+The Ledger *confers* the one-Award rule rather than merely recording it. An Award's
+file existing is what "this Person has won" means, so a second Award is not
+prevented by any check but by the file already being there. There is no separate
+lock, count, or key guarding this — and nothing a client could skip.
+
 ## Write Authority
 
 The proof a Person supplies that the repository will accept their commits. It is
@@ -165,6 +170,16 @@ mint again.
 The consequence worth remembering: Write Authority is a *Person's* property, and it
 identifies whoever holds it. If two People ever share one, the Ledger will
 faithfully record the wrong name.
+
+## Already Won
+
+The resolved meaning of a refused Award. When an Award cannot be written because
+its file already exists, the answer is not "an error occurred" but this: **the
+Person named holds an Award, and the rule held.**
+
+It is a definite statement, never a failure to be retried. The two must not be
+conflated — a Distributor who is told only that something went wrong will try
+again, and trying again is the one thing that must never happen here.
 
 ## Config
 
