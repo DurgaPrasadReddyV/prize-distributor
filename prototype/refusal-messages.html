@@ -1,0 +1,73 @@
+<!doctype html><meta charset="utf-8">
+<title>Every refusal, as a Person reads it</title>
+<style>
+ body{font:15px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;color:#16181d;
+      background:#fbfbfc;margin:0;padding:40px 24px 80px}
+ .wrap{max-width:760px;margin:0 auto}
+ h1{font-size:22px;letter-spacing:-.01em;margin:0 0 4px}
+ .sub{color:#6b7280;margin:0 0 28px}
+ .case{margin-bottom:20px}
+ .label{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#6b7280;margin:0 0 6px}
+ .msg{padding:14px 16px;border-radius:5px;border:1px solid;margin:0}
+ .msg strong{display:block;margin-bottom:3px;font-size:15px}
+ .msg span{font-size:13.5px}
+ .meta{font-size:11px;margin-top:7px;opacity:.7}
+</style>
+<div class="wrap">
+<h1>Every refusal, as a Person reads it</h1>
+<p class="sub">The top three are the interesting ones: the enforced refusal and the two advisory ones must not read alike, in words or in colour.</p>
+<div class="case">
+  <p class="label">Already Won — the rule HELD (enforced by the repository)</p>
+  <div class="msg" style="background:#e3f5ec;color:#0d5233;border-color:#a8d9c2">
+    <strong>Alex already has a prize</strong><span>Someone got there first. Their prize is the only one they will ever get.</span>
+    <div class="meta">tone: good &nbsp;·&nbsp; <span style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.75">enforced</span></div>
+  </div></div>
+<div class="case">
+  <p class="label">Already Won via 422 instead of 409</p>
+  <div class="msg" style="background:#e3f5ec;color:#0d5233;border-color:#a8d9c2">
+    <strong>Alex already has a prize</strong><span>Someone got there first. Their prize is the only one they will ever get.</span>
+    <div class="meta">tone: good &nbsp;·&nbsp; <span style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.75">enforced</span></div>
+  </div></div>
+<div class="case">
+  <p class="label">Prize exhausted — the app declining (advisory)</p>
+  <div class="msg" style="background:#fff4e5;color:#7a4700;border-color:#f3d5a8">
+    <strong>No keyboard left to give</strong><span>Every keyboard in the allocation has been given out. If that is wrong, raise the allocation in config/config.json — it takes effect immediately.</span>
+    <div class="meta">tone: warn &nbsp;·&nbsp; <span style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.75">advisory</span></div>
+  </div></div>
+<div class="case">
+  <p class="label">Self-issuance — the app declining (advisory)</p>
+  <div class="msg" style="background:#fff4e5;color:#7a4700;border-color:#f3d5a8">
+    <strong>You cannot issue this one</strong><span>You are the distributor, and Durga would be the recipient. Ask the deputy named in config/distributors.json to issue it instead.</span>
+    <div class="meta">tone: warn &nbsp;·&nbsp; <span style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.75">advisory</span></div>
+  </div></div>
+<div class="case">
+  <p class="label">Write blocked: token lacks permission</p>
+  <div class="msg" style="background:#fdeaea;color:#7f1d1a;border-color:#f3b8b4">
+    <strong>You cannot write to this repository</strong><span>The token needs "Contents: read and write" on this repository, and it lasts 90 days. It may have expired — check, or paste a fresh one.</span>
+    <div class="meta">tone: bad &nbsp;·&nbsp; <span style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.75">advisory</span></div>
+  </div></div>
+<div class="case">
+  <p class="label">Genuine failure: safe to retry</p>
+  <div class="msg" style="background:#fff4e5;color:#7a4700;border-color:#f3d5a8">
+    <strong>That did not save</strong><span>Alex has not been given the keyboard — nothing was written, so it is safe to try again.</span>
+    <div class="meta">tone: warn &nbsp;·&nbsp; <span style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.75">advisory</span></div>
+  </div></div>
+<div class="case">
+  <p class="label">Unrecognised failure: still safe to retry</p>
+  <div class="msg" style="background:#fdeaea;color:#7f1d1a;border-color:#f3b8b4">
+    <strong>Something went wrong</strong><span>This app does not recognise what happened, but no keyboard was given out. Nothing was written, so it is safe to try again.</span>
+    <div class="meta">tone: bad &nbsp;·&nbsp; <span style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.75">advisory</span></div>
+  </div></div>
+<div class="case">
+  <p class="label">A 409 on a pending Entry means a PERSON, not a rule</p>
+  <div class="msg" style="background:#fff4e5;color:#7a4700;border-color:#f3d5a8">
+    <strong>Someone else changed this claim</strong><span>Their version is still here — nothing was overwritten. Reload to see it, then decide whether your change is still needed.</span>
+    <div class="meta">tone: warn</div>
+  </div></div>
+<div class="case">
+  <p class="label">Token is more powerful than needed</p>
+  <div class="msg" style="background:#fff4e5;color:#7a4700;border-color:#f3d5a8">
+    <strong>This token can do more than it needs to</strong><span>It carries: repo, gist. A fine-grained token limited to this one repository, with only "Contents: read and write", is enough. Consider replacing it — this app never needs more.</span>
+    <div class="meta">tone: warn</div>
+  </div></div>
+</div>

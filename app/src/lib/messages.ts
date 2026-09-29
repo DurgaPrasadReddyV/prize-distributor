@@ -20,75 +20,105 @@ import { resolveRefusal } from './ledger';
 export interface Message {
   tone: 'good' | 'warn' | 'bad' | 'idle';
   headline: string;
+  /** What the Person reads. Says what happened and what to do next. */
   detail: string;
+  /**
+   * How strong the refusal is. This is what a *maintainer* needs, not a
+   * Distributor: 'enforced' means the repository refused and nothing can write
+   * around it, 'advisory' means the app declined. It is deliberately not
+   * surfaced in `detail`, because explaining the architecture to someone who
+   * just lost a race helps nobody.
+   */
+  strength?: 'enforced' | 'advisory';
 }
 
 const name = (login: string) => login.charAt(0).toUpperCase() + login.slice(1);
 
-/** Already Won: enforced by the repository, and a good outcome, not a failure. */
+/**
+ * Already Won — ENFORCED by the repository.
+ *
+ * Tone is 'good' deliberately. The rule held, which is the system working, and
+ * amber would say the opposite of what the words say. A Person who loses this
+ * race has done nothing wrong and there is nothing to fix.
+ */
 export function alreadyWon(personLogin: string): Message {
   return {
-    tone: 'warn',
+    tone: 'good',
+    strength: 'enforced',
     headline: `${name(personLogin)} already has a prize`,
-    detail:
-      'Someone got there first, so nothing was written. This is the one-prize rule working, not a problem — there is nothing to retry and nothing to fix.',
+    detail: 'Someone got there first. Their prize is the only one they will ever get.',
   };
 }
 
-/** Stock exhausted: the app declining, named specifically so it reads as such. */
+/** Stock exhausted — ADVISORY. The app is declining, and says what to do. */
 export function prizeExhausted(prizeName: string, left: number): Message {
+  const prize = prizeName.toLowerCase();
   return {
     tone: 'warn',
-    headline: `No ${prizeName.toLowerCase()} left to give`,
+    strength: 'advisory',
+    headline: `No ${prize} left to give`,
     detail:
-      `All ${prizeName.toLowerCase()}s in the allocation have been given out (${left} remaining). ` +
-      'This is the app checking, rather than a rule it cannot get around — if stock was ' +
-      'miscounted, add to the allocation in config and it takes effect straight away.',
+      left === 0
+        ? `Every ${prize} in the allocation has been given out. If that is wrong, raise the ` +
+          'allocation in config/config.json — it takes effect immediately.'
+        : `Only ${left} ${prize}${left === 1 ? '' : 's'} remain, so there is none spare. Raise ` +
+          'the allocation in config/config.json if that is wrong.',
   };
 }
 
-/** Self-issuance: a conflict of interest, refused by the app. */
+/** Self-issuance — ADVISORY, and a route forward rather than a dead end. */
 export function selfIssuance(distributorLogin: string): Message {
   return {
     tone: 'warn',
-    headline: 'A distributor cannot issue to themselves',
+    strength: 'advisory',
+    headline: 'You cannot issue this one',
     detail:
-      `You are the distributor, so you cannot award ${name(distributorLogin)}. ` +
-      'The deputy named in config can issue this instead. This is a judgement the app makes, ' +
-      'not a rule stored in the repository.',
+      `You are the distributor, and ${name(distributorLogin)} would be the recipient. ` +
+      'Ask the deputy named in config/distributors.json to issue it instead.',
   };
 }
 
-/** A refused Award, resolved by looking. `refusal.strength` picks the wording. */
+/**
+ * A refused Award, resolved by looking rather than by trusting a status code.
+ * `refusal.strength` — set when the refusal was resolved — is carried through
+ * for maintainers but never shown to a Person.
+ */
 export function awardRefused(
   refusal: Refusal,
   personLogin: string,
   prizeName: string,
 ): Message {
-  void prizeName; // named in the retryable branch below, if stock is relevant
   if (refusal.outcome === 'already-won') return alreadyWon(personLogin);
+
   if (refusal.outcome === 'blocked') {
     return {
       tone: 'bad',
-      headline: 'This account cannot write to the repository',
+      strength: refusal.strength,
+      headline: 'You cannot write to this repository',
       detail:
-        'A fine-grained token with "Contents: read and write" on this repository is needed. ' +
-        'Check the token has not expired — they last 90 days.',
+        'The token needs "Contents: read and write" on this repository, and it lasts 90 days. ' +
+        'It may have expired — check, or paste a fresh one.',
     };
   }
+
   if (refusal.outcome === 'retryable') {
     return {
       tone: 'warn',
+      strength: refusal.strength,
       headline: 'That did not save',
       detail:
-        `No ${prizeName.toLowerCase()} was given to ${name(personLogin)}, so it is safe to try again. ` +
-        'Nothing has been handed out at this point.',
+        `${name(personLogin)} has not been given the ${prizeName.toLowerCase()} — ` +
+        'nothing was written, so it is safe to try again.',
     };
   }
+
   return {
     tone: 'bad',
+    strength: refusal.strength,
     headline: 'Something went wrong',
-    detail: 'The write failed in a way this app does not recognise. Nothing was written.',
+    detail:
+      `This app does not recognise what happened, but no ${prizeName.toLowerCase()} was given out. ` +
+      'Nothing was written, so it is safe to try again.',
   };
 }
 

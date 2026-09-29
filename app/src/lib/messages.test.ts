@@ -6,83 +6,122 @@ import {
   overScopedToken,
   prizeExhausted,
   selfIssuance,
+  tokenProblem,
 } from './messages';
 import { resolveRefusal } from './ledger';
 
-const texts = (m: { headline: string; detail: string }) =>
+const said = (m: { headline: string; detail: string }) =>
   `${m.headline} ${m.detail}`.toLowerCase();
 
 /**
- * The point of these tests is not that the strings exist, but that the two
- * grades of refusal are distinguishable — and that nothing invites a retry of
- * an Award that was refused because the Person already won.
+ * The earlier version of this file asserted only that the strings *differed*.
+ * They did differ, and the UI was still wrong: Already Won was painted amber,
+ * the same colour as refusals that merely bend. These tests check the things
+ * a person actually perceives — colour, and whether jargon leaks out.
  */
-describe('the two grades of refusal must not read the same', () => {
-  it('Already Won sounds like a rule holding, not a failure', () => {
-    const t = texts(alreadyWon('alex'));
-    expect(t).toContain('one-prize rule');
-    expect(t).toMatch(/nothing to retry|nothing to fix/);
-    // must not read as an error
-    expect(t).not.toMatch(/went wrong|failed|try again/);
+describe('Already Won is a good outcome, and is coloured like one', () => {
+  it('is NOT the same tone as the refusals that merely bend', () => {
+    // The bug this file exists to catch: identical tone made the one unbypassable
+    // rule look like the ordinary app-declines errors.
+    expect(alreadyWon('alex').tone).not.toBe(prizeExhausted('Keyboard', 0).tone);
+    expect(alreadyWon('alex').tone).not.toBe(selfIssuance('durga').tone);
   });
 
-  it('exhausted stock names the specific obstacle', () => {
-    const m = prizeExhausted('Keyboard', 0);
-    expect(m.headline).toContain('keyboard');
-    expect(m.detail).toMatch(/allocation/);
+  it('reads as success, because the rule held', () => {
+    expect(alreadyWon('alex').tone).toBe('good');
   });
 
-  it('the advisory refusals admit they are the app checking', () => {
-    expect(prizeExhausted('Keyboard', 0).detail).toMatch(
-      /app checking|rather than a rule/,
-    );
-    expect(selfIssuance('durga').detail).toMatch(
-      /judgement the app makes|not a rule/,
-    );
+  it('does not use failure words', () => {
+    const t = said(alreadyWon('alex'));
+    expect(t).not.toMatch(/went wrong|failed|could not|problem|error/);
   });
 
-  it('Already Won is NOT phrased as advisory, and the others are', () => {
-    expect(alreadyWon('alex').detail).not.toMatch(/app checking/);
-    expect(prizeExhausted('Keyboard', 0).detail).toMatch(/app checking/);
-  });
-
-  it('the two grades produce different text', () => {
-    expect(texts(alreadyWon('alex'))).not.toBe(
-      texts(prizeExhausted('Keyboard', 0)),
-    );
-    expect(texts(alreadyWon('alex'))).not.toBe(texts(selfIssuance('durga')));
+  it('tells the Person what is true: they have their one prize', () => {
+    expect(said(alreadyWon('alex'))).toMatch(/only one|already has a prize/);
   });
 });
 
-describe('nothing ever invites a retry that must not happen', () => {
-  it('Already Won is distinguishable from a retryable failure by its text', () => {
-    const won = texts(alreadyWon('alex'));
-    const retryable = texts(
-      awardRefused(resolveRefusal(409, false), 'alex', 'Keyboard'),
-    );
-    expect(retryable).toMatch(/safe to try again/);
-    expect(won).not.toMatch(/safe to try again/);
+describe('architecture jargon never reaches the Person', () => {
+  const jargon = /app checking|rule it cannot|not a rule stored|enforced|advisory|judgement the app|repository is|the ledger|derived|atomic/;
+
+  it('Already Won does not explain the system', () => {
+    expect(said(alreadyWon('alex'))).not.toMatch(jargon);
   });
 
-  it('both 409 and 422 with the file present produce the same text', () => {
-    const via409 = awardRefused(resolveRefusal(409, true), 'alex', 'Keyboard');
-    const via422 = awardRefused(resolveRefusal(422, true), 'alex', 'Keyboard');
-    expect(texts(via409)).toBe(texts(via422));
+  it('exhausted stock gives an action, not a justification', () => {
+    const m = prizeExhausted('Keyboard', 0);
+    expect(said(m)).not.toMatch(jargon);
+    expect(m.detail).toMatch(/config\/config\.json/); // says where to fix it
   });
 
-  it('a blocked write points at the token, not at a retry', () => {
-    const m = awardRefused(resolveRefusal(403, false), 'alex', 'Keyboard');
-    expect(texts(m)).toMatch(/fine-grained token|expired/);
-    expect(m.detail).not.toMatch(/try again/);
+  it('self-issuance names a way forward', () => {
+    const m = selfIssuance('durga');
+    expect(said(m)).not.toMatch(jargon);
+    expect(m.detail).toMatch(/deputy/); // tells them who can do it
+  });
+
+  it('the token refusal points at the fix', () => {
+    expect(awardRefused(resolveRefusal(403, false), 'alex', 'Keyboard').detail)
+      .toMatch(/Contents: read and write|expired/);
+  });
+});
+
+describe('strength is carried for maintainers, not shown to anyone', () => {
+  it('marks Already Won as enforced', () => {
+    expect(alreadyWon('alex').strength).toBe('enforced');
+  });
+
+  it('marks the bending refusals as advisory', () => {
+    expect(prizeExhausted('Keyboard', 0).strength).toBe('advisory');
+    expect(selfIssuance('durga').strength).toBe('advisory');
+  });
+
+  it('carries the resolved strength through awardRefused', () => {
+    expect(awardRefused(resolveRefusal(409, true), 'alex', 'Keyboard').strength)
+      .toBe('enforced');
+    expect(awardRefused(resolveRefusal(409, false), 'alex', 'Keyboard').strength)
+      .toBe('advisory');
+  });
+});
+
+describe('both refusals of the same race produce identical wording', () => {
+  it('409 and 422 with the file present read the same to a Person', () => {
+    const a = awardRefused(resolveRefusal(409, true), 'alex', 'Keyboard');
+    const b = awardRefused(resolveRefusal(422, true), 'alex', 'Keyboard');
+    expect(said(a)).toBe(said(b));
+    expect(a.tone).toBe(b.tone);
+    expect(a.strength).toBe(b.strength);
+  });
+});
+
+describe('nothing invites a retry that must not happen', () => {
+  it('Already Won never says try again', () => {
+    expect(said(alreadyWon('alex'))).not.toMatch(/try again|safe to/);
+  });
+
+  it('a genuine failure does say it is safe', () => {
+    const m = awardRefused(resolveRefusal(409, false), 'alex', 'Keyboard');
+    expect(said(m)).toMatch(/safe to try again/);
+    expect(m.detail).toMatch(/nothing was written/i);
+  });
+
+  it('an unknown failure is still safe to retry, and says so', () => {
+    expect(said(awardRefused(resolveRefusal(500, false), 'alex', 'Keyboard')))
+      .toMatch(/safe to try again/);
+  });
+
+  it('a blocked write does NOT invite a retry', () => {
+    expect(awardRefused(resolveRefusal(403, false), 'alex', 'Keyboard').detail)
+      .not.toMatch(/try again/);
   });
 });
 
 describe('a 409 means different things on different paths', () => {
   it('on a pending Entry it names the other Person, not a rule', () => {
     const m = entryEditLost();
-    expect(texts(m)).toMatch(/someone else/);
-    expect(texts(m)).toMatch(/nothing was overwritten/);
-    expect(texts(m)).not.toMatch(/one-prize rule/);
+    expect(said(m)).toMatch(/someone else/);
+    expect(said(m)).toMatch(/nothing was overwritten/i);
+    expect(said(m)).not.toMatch(/one-prize|rule held/);
   });
 });
 
@@ -91,5 +130,9 @@ describe('token problems are said plainly at paste time', () => {
     const m = overScopedToken(['repo', 'gist']);
     expect(m.headline).toMatch(/more than it needs/);
     expect(m.detail).toMatch(/fine-grained/);
+  });
+
+  it('a rejected token says what to do', () => {
+    expect(said(tokenProblem('That token was not accepted.'))).toMatch(/token/);
   });
 });
