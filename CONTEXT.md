@@ -35,6 +35,19 @@ The Distributor is a designated office, not a repository permission. Being able
 to write does not make someone the Distributor. This is the system's one role
 that lives outside git, and it is therefore the one role that git cannot enforce.
 
+**No Distributor issues an Award naming themselves.** The cap means they gain
+nothing by it; what is refused is a Distributor being the sole judge of a claim
+they personally benefit from. A Deputy covers the case where the Distributor
+legitimately wins, so the rule denies self-judgement rather than the prize.
+
+**The office is not protected, and that is a known limit rather than an oversight.**
+The repository is public and personally owned, so branch protection is available
+but exempts administrators by default, and naming authorised pushers is an
+organisation-only feature. A Contributor with admin rights can therefore edit the
+Distributor's identity. The office lives in its own Config file so that such a
+change is visible as what it is — a deliberate, standalone, reviewable act — and
+the risk itself is recorded as accepted rather than solved.
+
 ## Event
 
 Something a Person can win, from a fixed configured list. An Event is named and
@@ -102,6 +115,16 @@ creation, and it never needs to be reconciled against anything else.
 
 The state of an Entry that an Award was issued against. **Never stored** — it is
 what an Entry *is* once an Award naming it exists.
+
+## Deputy
+
+A second Distributor, named in Config, who exists so that the office is never
+unable to act on its own holder. The Deputy issues when the appointed Distributor
+is the Person an Award would name, and for no other reason.
+
+The Deputy is not a successor and not a stand-in during absence. It exists for one
+narrow case, and that narrowness is deliberate: a broader mandate would turn a
+targeted fix for a conflict of interest into a second route to the office.
 
 ## Prize
 
