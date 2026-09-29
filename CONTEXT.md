@@ -224,6 +224,14 @@ writes to the repository can route around it. This distinguishes it from the
 system's other refusals, which are the application declining rather than the
 Ledger objecting.
 
+Already Won is established by **looking, never by reading a status code.** The
+repository reports it two different ways depending on timing: `409` when two writes
+truly arrive together, and `422` when a create arrives just after the winner
+committed. The second is what a double-click or a retried request produces, and it
+is the more common of the two. Trusting either code alone would misreport the
+frequent case as a generic failure — and a failure invites a retry, which is the
+one thing that must never happen here.
+
 ## Config
 
 The configured facts the system operates on: which Events exist, which Prizes are
