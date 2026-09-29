@@ -128,7 +128,15 @@ targeted fix for a conflict of interest into a second route to the office.
 
 ## Prize
 
-An item in the configured catalogue that can be issued as an Award.
+A **kind** of thing, with a count, that may be issued as an Award. Five identical
+keyboards are one Prize of allocation five, not five Prizes.
+
+A Prize is therefore not unique, and **may be awarded to many People**. That is not
+a loophole in the one-Award rule — it is a different rule about a different thing.
+What is unique is the Person, never the Prize.
+
+Which Prize an Award carries is decided at issuance, not by the Entry that
+justified it. An Entry claims that a Person won; it never says what they won.
 
 ## Inventory
 
@@ -139,6 +147,13 @@ can drift from what was actually given.
 What Config states per Prize is the *original allocation*, not a current balance.
 Changing it later means adding to the record of what was given, never editing a
 number that was counting something else.
+
+When allocation is exhausted, the Award is **refused** — and this refusal is of a
+different kind from Already Won. Already Won is a fact about the Ledger, enforced
+by the repository and unbypassable. Exhausted stock is a judgement the
+application makes, and a determined user could write around it. The two must never
+be presented to a Person in the same terms, because one of them bends and the
+other does not.
 
 ## Ledger
 
@@ -203,6 +218,11 @@ Person named holds an Award, and the rule held.**
 It is a definite statement, never a failure to be retried. The two must not be
 conflated — a Distributor who is told only that something went wrong will try
 again, and trying again is the one thing that must never happen here.
+
+Already Won is **true enforcement**: the Award file exists, and no client that
+writes to the repository can route around it. This distinguishes it from the
+system's other refusals, which are the application declining rather than the
+Ledger objecting.
 
 ## Config
 
