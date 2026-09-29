@@ -62,8 +62,8 @@ change their own claim.
 ## Superseded
 
 The state of an Entry that may well be true but can no longer be acted on, because
-the Person it names won something else first. An Entry goes superseded when a
-lifetime Award reaches another Entry for the same Person.
+the Person it names won something else first. **Never stored** — it is what an
+Entry *is* once its Person holds an Award arising from a different Entry.
 
 Superseded is emphatically **not** rejected. Rejection means the claim was judged
 false; supersession means the claim lost. Recording one as the other would put a
@@ -93,13 +93,29 @@ verified but not issued would be a Person who has spent their only prize and
 received nothing. There is consequently no state in which a claim is believed but
 unrewarded.
 
+An Award is the system's one indivisible fact. It names the Person, the Prize, the
+Event, the Entry that justified it, and the Distributor who issued it — and from
+that single record every other consequence follows. Issuing one is a single act of
+creation, and it never needs to be reconciled against anything else.
+
+## Awarded
+
+The state of an Entry that an Award was issued against. **Never stored** — it is
+what an Entry *is* once an Award naming it exists.
+
 ## Prize
 
 An item in the configured catalogue that can be issued as an Award.
 
 ## Inventory
 
-The count of each Prize remaining to be issued. Issuing an Award decrements it.
+What remains of each Prize, counted from the Awards already issued. **Never stored
+as a balance** — there is no running figure to decrement and therefore none that
+can drift from what was actually given.
+
+What Config states per Prize is the *original allocation*, not a current balance.
+Changing it later means adding to the record of what was given, never editing a
+number that was counting something else.
 
 ## Ledger
 
@@ -112,6 +128,19 @@ meaning. Whether the one-Award rule holds is a property of how the Ledger is lai
 out, not of any check the application performs while writing: a rule expressed as
 a count or a scan can be raced, and a rule expressed as the presence of a record
 cannot.
+
+The Ledger is **append-only in practice**. What it gains, it gains; what it
+records about the past, it does not edit. And it separates the two kinds of truth
+that are often wrongly filed together:
+
+- **The fact** — an Award happened. Stored, once, and immutable.
+- **The consequence** — this Entry is therefore awarded; that one is therefore
+  superseded; this Prize has therefore four left. Computed from the facts, never
+  written down.
+
+A consequence that gets stored is a consequence that can eventually contradict the
+fact it came from. Deriving instead means that contradiction is not merely
+unlikely, but unrepresentable.
 
 ## Write Authority
 
