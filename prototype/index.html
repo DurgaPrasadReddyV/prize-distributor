@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROTOTYPE — Prize distributor: does the rule actually hold?</title>
+<style>
+  :root {
+    --ink: #16181d;
+    --muted: #6b7280;
+    --line: #e3e5ea;
+    --bg: #fbfbfc;
+    --panel: #ffffff;
+    --accent: #2f5bd7;
+    --good: #16794a;
+    --warn: #9a5b00;
+    --bad: #b3261e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 24px 80px;
+    font: 15px/1.6 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink); background: var(--bg);
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 24px; line-height: 1.3; margin: 0 0 6px; letter-spacing: -0.01em; }
+  h2 { font-size: 15px; margin: 36px 0 12px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--muted); }
+  .question {
+    background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 6px; padding: 16px 18px; margin: 18px 0 8px;
+  }
+  .question p { margin: 0 0 10px; }
+  .question p:last-child { margin: 0; }
+  .banner {
+    display: inline-block; background: #fff4e5; border: 1px solid #f3d5a8; color: var(--warn);
+    border-radius: 4px; padding: 1px 7px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 0 8px 6px 0; border-bottom: 1px solid var(--line); }
+  td { padding: 7px 8px 7px 0; border-bottom: 1px solid #f1f2f5; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .s-pending { background: #eef2ff; color: #3730a3; }
+  .s-awarded { background: #e3f5ec; color: var(--good); }
+  .s-rejected { background: #fdeaea; color: var(--bad); }
+  .s-superseded { background: #f3f0fb; color: #5b21b6; }
+  .s-withdrawn { background: #f1f2f5; color: #4b5563; }
+  .outcome { padding: 12px 14px; border-radius: 5px; font-size: 13px; margin-bottom: 12px; border: 1px solid; }
+  .o-good { background: #e3f5ec; border-color: #a8d9c2; color: #0d5233; }
+  .o-bad  { background: #fdeaea; border-color: #f3b8b4; color: #7f1d1a; }
+  .o-warn { background: #fff4e5; border-color: #f3d5a8; color: #7a4700; }
+  .o-idle { background: #f6f7f9; border-color: var(--line); color: var(--muted); }
+  .outcome strong { display: block; margin-bottom: 3px; }
+  button {
+    font: inherit; font-size: 13px; padding: 8px 13px; border-radius: 5px;
+    border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: #c9cdd6; background: #fafbfc; }
+  button:disabled { opacity: 0.42; cursor: not-allowed; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover:not(:disabled) { background: #2749b0; }
+  .btns { display: flex; flex-wrap: wrap; gap: 7px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+  .tab {
+    border: none; background: none; padding: 8px 12px; border-bottom: 2px solid transparent;
+    border-radius: 0; font-size: 13px; color: var(--muted); margin-bottom: -1px;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .tab:hover:not(:disabled) { background: none; border-color: transparent; }
+  .steps { display: flex; flex-direction: column; gap: 9px; }
+  .step { display: flex; gap: 12px; align-items: flex-start; padding: 11px 13px; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
+  .step.done { background: #f7f9fc; border-color: #e8ecf3; }
+  .step.next { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(47,91,215,0.09); }
+  .n {
+    flex: 0 0 20px; height: 20px; border-radius: 50%; background: var(--line); color: var(--muted);
+    font-size: 11px; font-weight: 700; display: grid; place-items: center; margin-top: 1px;
+  }
+  .step.done .n { background: var(--good); color: #fff; }
+  .step.next .n { background: var(--accent); color: #fff; }
+  .step p { margin: 0 0 7px; font-size: 13px; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 5px; }
+  .code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; background: #f6f7f9; padding: 1px 5px; border-radius: 3px; }
+  .rule { font-size: 12.5px; color: var(--muted); margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .counts { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 4px; }
+  .count b { display: block; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+  .count span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="banner">Prototype — throwaway, not production</div>
+  <h1>Does the one-prize-per-person rule actually hold?</h1>
+
+  <div class="question">
+    <p><strong>The question:</strong> a person may win exactly one prize, ever. This demo lets you drive the model and watch what happens when two people act at the same time — because that is the case that is hard to be sure about on paper.</p>
+    <p>Everything here is worked out from facts checked against the real GitHub API: creating a file that already exists is refused, never merged, and two people writing the same new file at once produces one winner and one refusal. <strong>What the demo adds is the decision logic</strong> — turning those refusals into words a person can act on. Press the buttons in any order; the awkward cases are the point.</p>
+  </div>
+
+  <h2>Current state</h2>
+  <div id="outcome" class="outcome o-idle"><strong>Nothing has happened yet.</strong>Use the buttons below, or pick a scenario and step through it.</div>
+
+  <div class="grid">
+    <div class="panel">
+      <h3>Claims recorded</h3>
+      <table><thead><tr><th>Claim</th><th>Person</th><th>Status</th></tr></thead><tbody id="entries"></tbody></table>
+    </div>
+    <div class="panel">
+      <h3>Prizes</h3>
+      <table><thead><tr><th>Prize</th><th>Given</th><th>Left</th></tr></thead><tbody id="prizes"></tbody></table>
+      <div class="counts" style="margin-top:14px">
+        <div class="count"><b id="c-awards">0</b><span>Prizes given</span></div>
+        <div class="count"><b id="c-people">0</b><span>People won</span></div>
+        <div class="count"><b id="c-pending">0</b><span>Waiting</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Do anything</h2>
+  <div class="panel">
+    <div class="btns">
+      <button data-act="enter-alex">Someone claims Alex won the Hackathon</button>
+      <button data-act="enter-sam">Someone claims Sam won the Quiz</button>
+      <button data-act="enter-alex2">A second person claims Alex won the Quiz</button>
+      <button data-act="distribute-alex">Prize distributor awards Alex</button>
+      <button data-act="distribute-sam">Prize distributor awards Sam</button>
+      <button data-act="distribute-sam-again">Prize distributor clicks "Award Sam" again</button>
+      <button data-act="enter-alex-after">Someone tries to claim Alex won something else</button>
+      <button data-act="reject-alex2">Distributor rejects the second Alex claim</button>
+      <button data-act="reset" style="margin-left:auto">Start over</button>
+    </div>
+    <div class="rule">The "award again" and "claim Alex again" buttons are the interesting ones — they are the cases the rules are supposed to stop.</div>
+  </div>
+
+  <h2>Scenarios</h2>
+  <div class="tabs" id="tabs"></div>
+  <div class="panel" id="scenario"></div>
+
+</div>
+
+<script>
+/* ============================================================================
+   THE LOGIC — pure, no DOM. This block is the part worth keeping.
+   Everything below the line is throwaway presentation.
+   ========================================================================== */
+
+const Config = {
+  events: ["Hackathon", "Quiz"],
+  prizes: { keyboard: { name: "Keyboard", allocation: 2 } },
+  distributors: ["durga"],
+};
+
+const emptyLedger = () => ({ awards: {}, entries: {} });
+
+// --- Derived: the state of a claim, worked out from the prizes given ---------
+function entryState(ledger, entry) {
+  if (Object.values(ledger.awards).some(a => a.entryId === entry.id)) return "awarded";
+  if (entry.stored === "rejected") return "rejected";
+  if (entry.stored === "withdrawn") return "withdrawn";
+  const theirAward = Object.values(ledger.awards).find(a => a.personId === entry.personId);
+  if (theirAward) return "superseded";
+  return "pending";
+}
+
+function personHasWon(ledger, personId) {
+  return Object.values(ledger.awards).some(a => a.personId === personId);
+}
+
+function remaining(ledger, prizeId) {
+  const given = Object.values(ledger.awards).filter(a => a.prizeId === prizeId).length;
+  return Config.prizes[prizeId].allocation - given;
+}
+
+// --- The refusal rule. The whole design rests on this one function ----------
+// status: the code the write came back with. fileExists: whether the award
+// file is there when we go and look. Returns what a person should be told.
+function resolveRefusal(status, fileExists) {
+  if (fileExists) {
+    return {
+      outcome: "already-won",
+      headline: "Alex already has a prize",
+      detail: "Someone got there first. Nothing was written, and nothing needs retrying — trying again is the one thing that must not happen.",
+      retry: false,
+    };
+  }
+  return {
+    outcome: status === 403 || status === 404 ? "blocked" : "retryable",
+    headline: status === 403 || status === 404
+      ? "Not allowed to write here"
+      : "That did not save — try again",
+    detail: status === 403 || status === 404
+      ? "This account has no write access to the repository."
+      : "The file was not created, so nothing was recorded. It is safe to try again.",
+    retry: true,
+  };
+}
+
+/* ============================================================================
+   THE PAGE — throwaway. Calls into the logic above; holds no rules of its own.
+   ========================================================================== */
+
+let ledger = emptyLedger();
+let lastOutcome = null;
+let nextEntry = 1;
+let scenarioStep = 0;
+let activeTab = 0;
+
+const SCENARIOS = [
+  { name: "Someone claims a win",
+    desc: "The everyday case. A contributor records that Alex won the Hackathon, and the distributor awards it. Watch the claim move from waiting to given.",
+    steps: [["Someone claims Alex won the Hackathon", "enter-alex"],
+            ["Prize distributor awards Alex", "distribute-alex"]] },
+  { name: "Two distributors, one person",
+    desc: "The case the rules exist for. Two distributors award Alex at the same instant. Exactly one should succeed, and the other should be told clearly that Alex already has a prize — not that something went wrong.",
+    steps: [["Someone claims Alex won the Hackathon", "enter-alex"],
+            ["Distributor awards Alex", "distribute-alex"],
+            ["A second distributor awards Alex at the same moment", "race-dup"]] },
+  { name: "The same click, twice",
+    desc: "A double-click, or a request that times out and gets retried. The award must not be handed out twice, and the second attempt must not look like a failure worth retrying forever.",
+    steps: [["Someone claims Alex won the Hackathon", "enter-alex"],
+            ["Prize distributor awards Alex", "distribute-alex"],
+            ["The distributor clicks Award again", "distribute-sam-again-alex"]] },
+  { name: "Two claims, one prize",
+    desc: "Alex is claimed for both the Hackathon and the Quiz by two different people. The award goes to one — and the other claim becomes superseded, which is not the same as being rejected as false.",
+    steps: [["Someone claims Alex won the Hackathon", "enter-alex"],
+            ["A second person claims Alex won the Quiz", "enter-alex2"],
+            ["Distributor awards Alex for the Hackathon", "distribute-alex"]] },
+  { name: "A second prize, second person",
+    desc: "Sam claims a win and is awarded. This is the control: the cap is one prize per person, not one prize in total. Two people, two prizes, two keyboards out of two.",
+    steps: [["Someone claims Alex won the Hackathon", "enter-alex"],
+            ["Someone claims Sam won the Quiz", "enter-sam"],
+            ["Distributor awards Alex", "distribute-alex"],
+            ["Distributor awards Sam", "distribute-sam"]] },
+  { name: "Claiming after winning",
+    desc: "Alex has already won. Someone records a fresh claim that Alex won something else. The claim is allowed to exist — it is a real claim — but it can never become a second prize, and it reads as superseded rather than pending.",
+    steps: [["Someone claims Alex won the Hackathon", "enter-alex"],
+            ["Distributor awards Alex", "distribute-alex"],
+            ["Someone tries to claim Alex won something else", "enter-alex-after"]] },
+  { name: "Wrong stock",
+    desc: "Both keyboards are given out, and someone else wins. The award is refused — and unlike the one-per-person rule, this refusal is the app declining, not a fact it cannot get around. The wording should not pretend otherwise.",
+    steps: [["Someone claims Alex won the Hackathon", "enter-alex"],
+            ["Someone claims Sam won the Quiz", "enter-sam"],
+            ["Distributor awards Alex", "distribute-alex"],
+            ["Distributor awards Sam", "distribute-sam"],
+            ["A third person wins but the keyboards are gone", "out-of-stock"]] },
+];
+
+const byPerson = p => Object.values(ledger.entries).find(e => e.personId === p && entryState(ledger, e) === "pending");
+
+const ACTIONS = {
+  "enter-alex": () => addEntry("alex", "Hackathon", "Priya"),
+  "enter-sam": () => addEntry("sam", "Quiz", "Dev"),
+  "enter-alex2": () => addEntry("alex", "Quiz", "Dev"),
+  "enter-alex-after": () => {
+    if (personHasWon(ledger, "alex")) {
+      addEntry("alex", "Quiz", "Dev");
+      return setOutcome("o-warn", "Recorded, but it can never become a prize",
+        "Alex already won, so this claim is waiting on paper only. It stays visible as a real claim rather than being blocked at the door — the check could be wrong under a race, so the rule is enforced when the prize is handed over, not before.");
+    }
+    addEntry("alex", "Quiz", "Dev");
+    return setOutcome("o-good", "Claim recorded", "Alex has not won yet, so this is an ordinary waiting claim.");
+  },
+  "reject-alex2": () => {
+    const e = Object.values(ledger.entries).find(x => x.personId === "alex" && x.event === "Quiz");
+    if (!e) return setOutcome("o-idle", "Nothing to reject", "There is no Quiz claim for Alex yet.");
+    e.stored = "rejected";
+    return setOutcome("o-good", "Claim rejected", "This judges the claim, not Alex. A new claim for Alex can still be recorded later — rejection is not a blacklist.");
+  },
+  "distribute-alex": () => issue("alex"),
+  "distribute-sam": () => issue("sam"),
+  "distribute-sam-again": () => issue("sam", { again: true }),
+  "distribute-sam-again-alex": () => issue("alex", { again: true }),
+  "race-dup": () => {
+    if (!personHasWon(ledger, "alex")) {
+      return setOutcome("o-bad", "No prize was given to Alex", "There was nothing to race for. Award Alex first, then try the second distributor.");
+    }
+    // Both writers arrive; one creates, the other is refused. The refusal is
+    // resolved by going and looking, exactly as the real implementation does.
+    return setOutcome("o-good", resolveRefusal(409, true).headline,
+      "The second distributor was refused, then checked: Alex's file is there, so this means the one-prize rule held. Reported as a definite answer, not an error — and explicitly not retried.");
+  },
+  "out-of-stock": () => {
+    if (remaining(ledger, "keyboard") > 0) {
+      return setOutcome("o-idle", "Stock is not exhausted", `There ${remaining(ledger, "keyboard") === 1 ? "is" : "are"} still ${remaining(ledger, "keyboard")} keyboard(s) left.`);
+    }
+    const e = addEntry("robin", "Quiz", "Dev", true);
+    e.stored = "superseded";
+    delete e.stored;
+    return setOutcome("o-warn", "Refused — no keyboards left",
+      "Both were given out, so no prize was issued. Note this is a different kind of refusal from the one-prize rule: that one is enforced by the repository and cannot be written around, while this one is the app declining. The wording should not blur them.");
+  },
+  reset: () => { ledger = emptyLedger(); nextEntry = 1; scenarioStep = 0; lastOutcome = null; },
+};
+
+function addEntry(personId, event, by, quiet) {
+  const id = `e${nextEntry++}`;
+  ledger.entries[id] = { id, personId, event, by, createdAt: ledger.entries.length + 1 };
+  if (!quiet) {
+    const won = personHasWon(ledger, personId);
+    const name = personId[0].toUpperCase() + personId.slice(1);
+    setOutcome(won ? "o-warn" : "o-good",
+      won ? `Recorded — ${name} has already won` : `Recorded — ${name} may have won the ${event}`,
+      won ? "The claim is kept, because it might be true, but it can never become a second prize. It will read as superseded."
+          : "Waiting for the prize distributor to look at it.");
+  }
+  return ledger.entries[id];
+}
+
+function issue(personId, { again } = {}) {
+  const name = personId[0].toUpperCase() + personId.slice(1);
+  const entry = byPerson(personId);
+
+  if (personHasWon(ledger, personId)) {
+    // A refusal. The real implementation resolves it by reading the file.
+    const r = resolveRefusal(again ? 422 : 409, true);
+    return setOutcome("o-bad", r.headline, r.detail + ` (The write came back as ${again ? 422 : 409}; the file check is what settles it.)`);
+  }
+  if (!entry) {
+    return setOutcome("o-warn", `No waiting claim for ${name}`,
+      "A prize needs a claim to rest on. Record one first.");
+  }
+  if (remaining(ledger, "keyboard") <= 0) return ACTIONS["out-of-stock"]();
+
+  const awarded = { personId, prizeId: "keyboard", entryId: entry.id, issuedBy: "durga", issuedAt: ledger.entries.length };
+  ledger.awards[personId] = awarded;   // one file per person; the write is the rule
+  return setOutcome("o-good", `${name} has won a keyboard`,
+    "One record written. Every other status here — this claim given, any other claim by Alex superseded, one keyboard fewer — is worked out from that single record, not stored alongside it.");
+}
+
+function setOutcome(kind, headline, detail) {
+  lastOutcome = { kind, headline, detail };
+}
+
+function render() {
+  const o = document.getElementById("outcome");
+  if (!lastOutcome) {
+    o.className = "outcome o-idle";
+    o.innerHTML = "<strong>Nothing has happened yet.</strong>Use the buttons below, or pick a scenario and step through it.";
+  } else {
+    o.className = "outcome " + lastOutcome.kind;
+    o.innerHTML = `<strong>${lastOutcome.headline}</strong>${lastOutcome.detail}`;
+  }
+
+  const rows = Object.values(ledger.entries).map(e => {
+    const s = entryState(ledger, e);
+    return `<tr><td>${e.event}<div class="note">claimed by ${e.by}</div></td>
+      <td>${e.personId[0].toUpperCase() + e.personId.slice(1)}</td>
+      <td><span class="pill s-${s}">${s}</span></td></tr>`;
+  });
+  document.getElementById("entries").innerHTML = rows.length
+    ? rows.join("")
+    : `<tr><td colspan="3" style="color:var(--muted)">No claims recorded yet.</td></tr>`;
+
+  const prize = Config.prizes.keyboard;
+  const given = Object.keys(ledger.awards).length;
+  document.getElementById("prizes").innerHTML =
+    `<tr><td>${prize.name}<div class="note">allocation ${prize.allocation}</div></td>
+     <td>${given}</td><td><b>${remaining(ledger, "keyboard")}</b></td></tr>`;
+
+  document.getElementById("c-awards").textContent = given;
+  document.getElementById("c-people").textContent = new Set(Object.values(ledger.awards).map(a => a.personId)).size;
+  document.getElementById("c-pending").textContent =
+    Object.values(ledger.entries).filter(e => entryState(ledger, e) === "pending").length;
+
+  renderScenario();
+}
+
+function renderScenario() {
+  const s = SCENARIOS[activeTab];
+  document.getElementById("tabs").innerHTML = SCENARIOS.map((x, i) =>
+    `<button class="tab ${i === activeTab ? "active" : ""}" data-tab="${i}">${x.name}</button>`).join("");
+
+  document.getElementById("scenario").innerHTML =
+    `<p style="margin:0 0 14px; font-size:13.5px; color:#374151">${s.desc}</p>
+     <div class="steps">${s.steps.map(([label, act], i) => {
+       const done = i < scenarioStep;
+       const next = i === scenarioStep;
+       return `<div class="step ${done ? "done" : next ? "next" : ""}">
+         <div class="n">${done ? "✓" : i + 1}</div>
+         <div style="flex:1"><p>${label}</p>
+         <button class="${next ? "primary" : ""}" data-step="${i}" ${next ? "" : "disabled"}>
+           ${done ? "Done" : next ? "Do this" : "Not yet"}</button></div></div>`;
+     }).join("")}</div>
+     <div class="rule">Starting a scenario clears the board so it runs the same way every time.</div>`;
+}
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  if (t.dataset.act) { ACTIONS[t.dataset.act](); }
+  else if (t.dataset.tab !== undefined) { activeTab = +t.dataset.tab; scenarioStep = 0; ACTIONS.reset(); }
+  else if (t.dataset.step !== undefined) { ACTIONS[SCENARIOS[activeTab].steps[+t.dataset.step][1]](); scenarioStep++; }
+  render();
+});
+
+// Fresh board on load so scenario 1 is honest about starting empty.
+render();
+</script>
+</body>
+</html>
