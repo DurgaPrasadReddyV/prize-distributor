@@ -54,6 +54,30 @@ An Entry and an Award are different objects. Conflating them is the single most
 common way to misread this system: recording an Entry does not give anyone a
 prize, and an Award always rests on an Entry that was checked first.
 
+An Entry is *pending* until it reaches exactly one terminal state, and there are
+four ways to end: **awarded**, **rejected**, **superseded**, or **withdrawn**. Once
+it has left pending it is frozen, which is what bounds a Contributor's ability to
+change their own claim.
+
+## Superseded
+
+The state of an Entry that may well be true but can no longer be acted on, because
+the Person it names won something else first. An Entry goes superseded when a
+lifetime Award reaches another Entry for the same Person.
+
+Superseded is emphatically **not** rejected. Rejection means the claim was judged
+false; supersession means the claim lost. Recording one as the other would put a
+"did not win" stamp on a true statement, in a public record that cannot be edited
+later — which is why the two states are kept apart at the level of meaning and not
+merely at the level of wording.
+
+## Withdrawal
+
+The taking back of a `pending` Entry by the Contributor who created it, before
+anyone has judged it. Only a Contributor may withdraw their own Entry, and only
+while it is pending; withdrawal is unavailable the moment the Entry reaches any
+other state.
+
 ## Award
 
 A prize issued to a Person, drawn from inventory, after an Entry was verified.
@@ -62,6 +86,12 @@ An Award is the only object in the system that moves inventory and the only one 
 Person can hold. **A Person may hold at most one Award in their lifetime**, across
 every Event. This is a lifetime cap, not a per-Event cap, and it is the system's
 central invariant.
+
+Verifying a claim and issuing the prize against it are **one act**, not two. They
+are inseparable because a lifetime cap has no second chance to offer: a claim
+verified but not issued would be a Person who has spent their only prize and
+received nothing. There is consequently no state in which a claim is believed but
+unrewarded.
 
 ## Prize
 
