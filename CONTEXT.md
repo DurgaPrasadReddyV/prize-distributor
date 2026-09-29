@@ -92,6 +92,16 @@ only against the repository, and it is never written anywhere the Ledger can rea
 Write Authority is what separates a Contributor from a bystander. It is distinct
 from office: holding it says nothing about whether someone is the Distributor.
 
+Write Authority is a *borrowed* credential, and a narrow one. It grants less than
+the Person actually has — a single repository, a single permission, a limited
+life — because it is pasted into a web page, which is the last place a durable
+secret belongs. A Person who loses Write Authority loses nothing they could not
+mint again.
+
+The consequence worth remembering: Write Authority is a *Person's* property, and it
+identifies whoever holds it. If two People ever share one, the Ledger will
+faithfully record the wrong name.
+
 ## Config
 
 The configured facts the system operates on: which Events exist, which Prizes are
